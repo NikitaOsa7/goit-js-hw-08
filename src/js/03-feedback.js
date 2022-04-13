@@ -1,44 +1,39 @@
-import { throttle } from "lodash";
+import throttle from 'lodash.throttle';
 
-const emailEl = document.querySelector('input');
-const messageEl = document.querySelector('textarea');
-const submitButtonEl = document.querySelector('button');
-const formEl = document.querySelector('.feedback-form');
+const feedbackForm = document.querySelector('.feedback-form');
 
-const newEmail = JSON.parse(localStorage.getItem('feedback-form-state'));
-const newMessage = JSON.parse(localStorage.getItem('feedback-form-state'));
+const formInput = {};
 
-if (newEmail) {
-    emailEl.value = newEmail.email;
-    messageEl.textContent = newMessage.message;
+initForm();
+
+function initForm() {
+let storage = JSON.parse(localStorage.getItem('feedback-form-state'));
+  if (storage) {
+    Object.entries(storage).forEach(([name, value]) => {
+      formInput[name] = value;
+      feedbackForm.elements[name].value = value;
+    }) 
+    };
 }
 
-let message = '';
-let email = '';
-
-let changeMessage = (event) => {
-    message = event.currentTarget.value.toString();
-}
-
-let changeEmail = (event) => {
-    email = event.currentTarget.value.toString();
-}
-
-messageEl.addEventListener("input", changeMessage);
-emailEl.addEventListener("input", changeEmail);
-
-formEl.addEventListener("input", throttle(() => {
-    localStorage.setItem("feedback-form-state", JSON.stringify({ email, message }))
+feedbackForm.addEventListener("input", throttle((evt) => {
+  formInput[evt.target.name] = evt.target.value;
+  localStorage.setItem("feedback-form-state", JSON.stringify(formInput))
 }, 500));
 
+const handleSubmit = evt => {
+  evt.preventDefault();
 
+  if (feedbackForm.elements.email.value === "" || feedbackForm.elements.message.value === "") {
+  return alert("Please fill in all the fields!");
+  }
 
-const onButonClick = () => {
-    console.log(localStorage.getItem("feedback-form-state"));
-    localStorage.removeItem("feedback-form-state")
-    emailEl.value = '';
-    messageEl.textContent = '';
+  console.log(JSON.parse(localStorage.getItem("feedback-form-state")));
+  localStorage.removeItem("feedback-form-state");
+  formInput.message = '';
+  formInput.email = '';
+  feedbackForm.elements.email.value = '';
+  feedbackForm.elements.message.value = '';
 };
 
-submitButtonEl.addEventListener('click', onButonClick);
-
+feedbackForm.addEventListener("submit", handleSubmit);
